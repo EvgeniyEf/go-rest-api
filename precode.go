@@ -55,7 +55,7 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
 	// так как все успешно, то статус OK
 	w.WriteHeader(http.StatusOK)
 	// записываем сериализованные в JSON данные в тело ответа
-	w.Write(resp)
+	_, _ = w.Write(resp)
 }
 
 func postTask(w http.ResponseWriter, r *http.Request) {
@@ -71,6 +71,13 @@ func postTask(w http.ResponseWriter, r *http.Request) {
 	if err = json.Unmarshal(buf.Bytes(), &task); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
+	}
+
+	for _, t := range tasks {
+		if t.ID == task.ID {
+			http.Error(w, "Задача с таким id уже существует", http.StatusConflict)
+			return
+		}
 	}
 
 	tasks[task.ID] = task
@@ -110,7 +117,7 @@ func delTask(w http.ResponseWriter, r *http.Request) {
 
 	delete(tasks, id)
 
-	resp, err := json.Marshal(tasks)
+	_, err := json.Marshal(tasks)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -118,7 +125,7 @@ func delTask(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(resp)
+
 }
 
 func main() {
